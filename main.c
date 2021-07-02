@@ -35,6 +35,14 @@ char* curlRequest(char URL[]) {
   }
 }
 
+char* getJSONString(cJSON* string){
+	char* value = cJSON_Print(string);
+	if (string == NULL){
+	        fprintf(stderr, "Failed to print.\n");
+ 	}
+	return value;
+}
+
 int main(int argc, char *argv[]) {
   if( argc != 3 ) {
     printf("usage: ./curl [Prayer Time Calculation Method] [Prayer Time School] \n \ 
@@ -82,7 +90,7 @@ int main(int argc, char *argv[]) {
   sprintf(completeURL, "%slatitude=%f&longitude=%f&method=%d&school=%d", prayerTimeBaseURL, latitude, longitude, prayerTimeCalcMethod, prayerTimeSchool);
 //  curl_handle = curl_easy_init();
   //printf("Data: %s\n", completeURL);
-//  printf("Data: %s\n", curlRequest(completeURL));
+  printf("Data: %s\n", curlRequest(completeURL));
 //  data = json_tokener_parse(buffer);
 
 // size_t length;
@@ -92,30 +100,46 @@ int main(int argc, char *argv[]) {
 
   cJSON *json = cJSON_Parse(curlRequest(completeURL));
   const cJSON *times = NULL;
-  const cJSON *fajr = NULL;
-  const cJSON *dhuhr = NULL;
-  const cJSON *asr = NULL;
-  const cJSON *maghrib = NULL;
-  const cJSON *isha = NULL;
+  cJSON *fajr = NULL;
+  cJSON *dhuhr = NULL;
+  cJSON *asr = NULL;
+  cJSON *maghrib = NULL;
+  cJSON *isha = NULL;
   const cJSON *dataJSON = cJSON_GetObjectItemCaseSensitive(json, "data");
-  cJSON_ArrayForEach(times, dataJSON)
-  {
-  	const cJSON *timings = cJSON_GetObjectItemCaseSensitive(times, "timings");
-  	const cJSON *prayer = NULL;
-	cJSON_ArrayForEach(prayer, timings){
-  		fajr = cJSON_GetObjectItemCaseSensitive(times, "Fajr");
-  		dhuhr = cJSON_GetObjectItemCaseSensitive(times, "Dhuhr");
-  		asr = cJSON_GetObjectItemCaseSensitive(times, "Asr");
-  		maghrib = cJSON_GetObjectItemCaseSensitive(times, "Maghrib");
-  		isha = cJSON_GetObjectItemCaseSensitive(times, "Isha");
-	}
-  }
-  char* string = cJSON_Print(fajr);
-  if (string == NULL){
-        fprintf(stderr, "Failed to print fajr.\n");
-  }
+  //char* string = cJSON_Print(dataJSON);
+  //printf("datacJSON: %s\n", string);
+  const cJSON *dataJSON2 = cJSON_GetObjectItemCaseSensitive(dataJSON, "timings");
 
-  return 0;
+//  char* string = cJSON_Print(dataJSON2);
+  fajr = cJSON_GetObjectItemCaseSensitive(dataJSON2, "Fajr");
+  dhuhr = cJSON_GetObjectItemCaseSensitive(dataJSON2, "Dhuhr");
+  asr = cJSON_GetObjectItemCaseSensitive(dataJSON2, "Asr");
+  maghrib = cJSON_GetObjectItemCaseSensitive(dataJSON2, "Maghrib");
+  isha = cJSON_GetObjectItemCaseSensitive(dataJSON2, "Isha");
+
+  char* string = cJSON_Print(fajr);
+  printf("fajr: %s\n", string);
+  
+  FILE *fptr = fopen("prayerTimes.txt","w");
+
+  if(fptr == NULL)
+   {
+      printf("Error!");
+      exit(1);
+   }
+
+  fprintf(fptr,"%s\n",getJSONString(fajr));
+  fprintf(fptr,"%s\n",getJSONString(dhuhr));
+  fprintf(fptr,"%s\n",getJSONString(asr));
+  fprintf(fptr,"%s\n",getJSONString(maghrib));
+  fprintf(fptr,"%s\n",getJSONString(isha));
+  fclose(fptr);
+  //string = cJSON_Print(fajr);
+  //if (string == NULL){
+//        fprintf(stderr, "Failed to print fajr.\n");
+ // }
+
+ // return 0;
 }
 
 
