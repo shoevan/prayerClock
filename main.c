@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
 			1: Hanafi\n");
 //return 1;
   }
-
+  struct json_object *data;
   char prayerTimeBaseURL[] = "http://api.aladhan.com/v1/timings/:date_or_timestamp?";
   int prayerTimeCalcMethod = 3; 
   int prayerTimeSchool = 1;
@@ -82,7 +82,38 @@ int main(int argc, char *argv[]) {
   sprintf(completeURL, "%slatitude=%f&longitude=%f&method=%d&school=%d", prayerTimeBaseURL, latitude, longitude, prayerTimeCalcMethod, prayerTimeSchool);
 //  curl_handle = curl_easy_init();
   //printf("Data: %s\n", completeURL);
-  printf("Data: %s\n", curlRequest(completeURL));
+//  printf("Data: %s\n", curlRequest(completeURL));
+//  data = json_tokener_parse(buffer);
+
+// size_t length;
+
+// json_object_object_get_ex(data, "data", &data);
+//  length = json_object_array_length(data)
+
+  cJSON *json = cJSON_Parse(curlRequest(completeURL));
+  const cJSON *times = NULL;
+  const cJSON *fajr = NULL;
+  const cJSON *dhuhr = NULL;
+  const cJSON *asr = NULL;
+  const cJSON *maghrib = NULL;
+  const cJSON *isha = NULL;
+  const cJSON *dataJSON = cJSON_GetObjectItemCaseSensitive(json, "data");
+  cJSON_ArrayForEach(times, dataJSON)
+  {
+  	const cJSON *timings = cJSON_GetObjectItemCaseSensitive(times, "timings");
+  	const cJSON *prayer = NULL;
+	cJSON_ArrayForEach(prayer, timings){
+  		fajr = cJSON_GetObjectItemCaseSensitive(times, "Fajr");
+  		dhuhr = cJSON_GetObjectItemCaseSensitive(times, "Dhuhr");
+  		asr = cJSON_GetObjectItemCaseSensitive(times, "Asr");
+  		maghrib = cJSON_GetObjectItemCaseSensitive(times, "Maghrib");
+  		isha = cJSON_GetObjectItemCaseSensitive(times, "Isha");
+	}
+  }
+  char* string = cJSON_Print(fajr);
+  if (string == NULL){
+        fprintf(stderr, "Failed to print fajr.\n");
+  }
 
   return 0;
 }
